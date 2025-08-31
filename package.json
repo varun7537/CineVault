@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@angular/cli": "^20.2.1"
+  },
+  "scripts": {
+    "build": "ng build"
+  }
+}
