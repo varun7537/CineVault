@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Database</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'bounce-gentle': 'bounceGentle 2s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'gradient': 'gradient 6s ease infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        bounceGentle: {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' }
+                        },
+                        gradient: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' }
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body ng-app="movieApp" ng-controller="MovieController as ctrl" class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-10 left-10 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
+        <div class="absolute top-40 right-20 w-24 h-24 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style="animation-delay: -1s;"></div>
+        <div class="absolute bottom-20 left-1/4 w-40 h-40 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style="animation-delay: -2s;"></div>
+    </div>
+
+    <div class="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header with Logo -->
+        <div class="text-center mb-12 animate-fade-in">
+            <h1 class="text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-4 animate-pulse-slow">
+                🎬 CineVault
+            </h1>
+            <p class="text-xl text-gray-300 font-light">Discover, Explore, and Collect Your Favorite Movies</p>
+        </div>
+
+        <!-- User Authentication Card -->
+        <div ng-if="!ctrl.userLoggedIn" class="max-w-md mx-auto mb-12 animate-slide-up">
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+                <div class="text-center mb-6">
+                    <i class="fas fa-user-circle text-5xl text-blue-400 mb-4 animate-bounce-gentle"></i>
+                    <h3 class="text-2xl font-bold text-white mb-2">Welcome Back</h3>
+                    <p class="text-gray-300">Sign in to access your movie collection</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" ng-model="ctrl.username" placeholder="Username" 
+                               class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" ng-model="ctrl.password" placeholder="Password" 
+                               class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button ng-click="ctrl.login()" 
+                                class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </button>
+                        <button ng-click="ctrl.logout()" 
+                                class="flex-1 bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-red-600 hover:to-pink-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </div>
+                    <div ng-if="ctrl.authError" class="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg text-center animate-fade-in">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>{{ ctrl.authError }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div ng-if="ctrl.userLoggedIn" class="mb-8 animate-fade-in">
+            <div class="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-2xl font-bold text-white mb-2">
+                            <i class="fas fa-user-check text-emerald-400 mr-3"></i>Welcome, {{ ctrl.username }}!
+                        </h3>
+                        <p class="text-gray-300">You have {{ ctrl.favorites.length }} movies in your favorites</p>
+                    </div>
+                    <button ng-click="ctrl.logout()" 
+                            class="bg-gradient-to-r from-red-500 to-pink-600 text-white py-2 px-6 rounded-lg font-semibold hover:from-red-600 hover:to-pink-700 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+                
+                <!-- Favorites Preview -->
+                <div ng-if="ctrl.favorites.length > 0" class="mt-6">
+                    <h4 class="text-lg font-semibold text-white mb-3">
+                        <i class="fas fa-heart text-red-500 mr-2"></i>Your Favorites
+                    </h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span ng-repeat="favorite in ctrl.favorites | limitTo:5" 
+                              class="bg-white/10 text-white px-3 py-1 rounded-full text-sm border border-white/20 animate-fade-in">
+                            {{ favorite.Title }}
+                        </span>
+                        <span ng-if="ctrl.favorites.length > 5" class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm border border-blue-500/30">
+                            +{{ ctrl.favorites.length - 5 }} more
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div ng-if="ctrl.userLoggedIn" class="mb-8 animate-slide-up">
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Search Input -->
+                    <div class="lg:col-span-2">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
+                            <input type="text" ng-model="ctrl.searchQuery" 
+                                   placeholder="Search for movies, actors, directors..." 
+                                   class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-lg">
+                        </div>
+                    </div>
+                    
+                    <!-- Genre Filter -->
+                    <div class="relative">
+                        <i class="fas fa-filter absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
+                        <select ng-model="ctrl.selectedGenre" 
+                                class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-lg appearance-none">
+                            <option value="" class="bg-gray-800">All Genres</option>
+                            <option ng-repeat="genre in ctrl.genres" value="{{ genre }}" class="bg-gray-800">{{ genre }}</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                    <button ng-click="ctrl.searchMovies()" 
+                            class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-glow">
+                        <i class="fas fa-search mr-2"></i>Search Movies
+                    </button>
+                    <button ng-click="ctrl.clearSearch()" 
+                            class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                        <i class="fas fa-times mr-2"></i>Clear Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sorting Options -->
+        <div ng-if="ctrl.userLoggedIn" class="mb-8 animate-fade-in">
+            <div class="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <label class="text-white font-semibold text-lg">
+                        <i class="fas fa-sort mr-2 text-blue-400"></i>Sort Movies:
+                    </label>
+                    <div class="relative flex-1 max-w-xs">
+                        <select ng-model="ctrl.sortBy" ng-change="ctrl.sortMovies()" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 appearance-none">
+                            <option value="title" class="bg-gray-800">Alphabetical (A-Z)</option>
+                            <option value="year" class="bg-gray-800">Release Date (Newest)</option>
+                            <option value="rating" class="bg-gray-800">IMDb Rating (Highest)</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Animation -->
+        <div ng-if="ctrl.loading" class="flex flex-col items-center justify-center py-20 animate-fade-in">
+            <div class="relative">
+                <div class="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                <div class="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin absolute top-2 left-2" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+            </div>
+            <p class="text-white text-xl mt-6 animate-pulse">Discovering amazing movies...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div ng-if="ctrl.errorMessage" class="max-w-md mx-auto mb-8 animate-fade-in">
+            <div class="bg-red-500/20 border border-red-500/50 text-red-300 px-6 py-4 rounded-xl text-center backdrop-blur-sm">
+                <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                <p class="font-semibold">{{ ctrl.errorMessage }}</p>
+            </div>
+        </div>
+
+        <!-- Movie Results Grid -->
+        <div ng-if="ctrl.movies.length > 0" class="animate-slide-up">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+                <div ng-repeat="movie in ctrl.movies" class="group animate-fade-in" style="animation-delay: {{ $index * 0.1 }}s;">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden hover:bg-white/20 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 group-hover:shadow-3xl">
+                        <!-- Movie Poster -->
+                        <div class="relative overflow-hidden">
+                            <img ng-src="{{ movie.Poster }}" alt="{{ movie.Title }}" 
+                                 class="w-full h-64 sm:h-80 object-cover transition-transform duration-700 group-hover:scale-110">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            
+                            <!-- Favorite Heart -->
+                            <div class="absolute top-3 right-3">
+                                <button ng-click="ctrl.toggleFavorite(movie)" 
+                                        class="p-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 hover:bg-black/70 transition-all duration-300 transform hover:scale-110">
+                                    <i ng-class="{'fas fa-heart text-red-500': ctrl.isFavorite(movie), 'far fa-heart text-white': !ctrl.isFavorite(movie)}" 
+                                       class="text-xl transition-all duration-300"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Quick Actions Overlay -->
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="flex space-x-3">
+                                    <button ng-click="ctrl.getMovieDetails(movie.imdbID)" 
+                                            class="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full transform hover:scale-110 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-info-circle text-lg"></i>
+                                    </button>
+                                    <button ng-click="ctrl.addReview(movie)" 
+                                            class="bg-yellow-500 hover:bg-yellow-600 text-white p-3 rounded-full transform hover:scale-110 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-star text-lg"></i>
+                                    </button>
+                                    <button ng-click="ctrl.shareMovie(movie)" 
+                                            class="bg-green-500 hover:bg-green-600 text-white p-3 rounded-full transform hover:scale-110 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-share-alt text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Movie Info -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300">
+                                {{ movie.Title }}
+                            </h3>
+                            <div class="space-y-2 text-gray-300">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-blue-400 mr-2"></i>
+                                    <span>{{ movie.Year }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-film text-purple-400 mr-2"></i>
+                                    <span class="capitalize">{{ movie.Type }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="mt-4 space-y-2">
+                                <button ng-click="ctrl.getMovieDetails(movie.imdbID)" 
+                                        class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                                    <i class="fas fa-info-circle mr-2"></i>View Details
+                                </button>
+                                <button ng-click="ctrl.addReview(movie)" 
+                                        class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 px-4 rounded-lg font-medium hover:from-yellow-600 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                                    <i class="fas fa-edit mr-2"></i>Add Review
+                                </button>
+                                <button ng-click="ctrl.shareMovie(movie)" 
+                                        class="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:from-green-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                                    <i class="fas fa-share-alt mr-2"></i>Share Movie
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Pagination -->
+        <nav ng-if="ctrl.totalResults > 10" class="flex justify-center animate-fade-in">
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+                <ul class="flex items-center space-x-2">
+                    <li>
+                        <button ng-click="ctrl.changePage(ctrl.currentPage - 1)" 
+                                ng-disabled="ctrl.currentPage === 1"
+                                class="px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-white/20 transform hover:scale-105">
+                            <i class="fas fa-chevron-left mr-1"></i>Previous
+                        </button>
+                    </li>
+                    
+                    <li ng-repeat="n in [].constructor(ctrl.totalPages) track by $index" ng-if="$index + 1 <= 10">
+                        <button ng-click="ctrl.changePage($index + 1)" 
+                                ng-class="{'bg-blue-500 text-white shadow-lg': $index + 1 === ctrl.currentPage, 'text-gray-300 hover:bg-white/20': $index + 1 !== ctrl.currentPage}"
+                                class="w-10 h-10 rounded-lg font-medium transition-all duration-300 transform hover:scale-110">
+                            {{ $index + 1 }}
+                        </button>
+                    </li>
+                    
+                    <li>
+                        <button ng-click="ctrl.changePage(ctrl.currentPage + 1)" 
+                                ng-disabled="ctrl.currentPage === ctrl.totalPages"
+                                class="px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-white/20 transform hover:scale-105">
+                            Next<i class="fas fa-chevron-right ml-1"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Movie Details Modal -->
+        <div ng-if="ctrl.showModal" class="fixed inset-0 z-50 overflow-y-auto animate-fade-in" ng-click="ctrl.closeModal()">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"></div>
+                
+                <div ng-click="$event.stopPropagation()" class="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 max-w-4xl w-full mx-4 transform transition-all duration-500 animate-slide-up">
+                    <!-- Modal Header -->
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 rounded-t-3xl">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-2xl font-bold text-white">{{ ctrl.selectedMovie.Title }}</h2>
+                            <button ng-click="ctrl.closeModal()" 
+                                    class="text-white hover:text-gray-300 p-2 rounded-full hover:bg-white/20 transition-all duration-300 transform hover:scale-110">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Body -->
+                    <div class="p-6 max-h-96 overflow-y-auto">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Movie Poster -->
+                            <div class="lg:col-span-1">
+                                <img ng-src="{{ ctrl.selectedMovie.Poster }}" 
+                                     class="w-full rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300" 
+                                     alt="{{ ctrl.selectedMovie.Title }}">
+                            </div>
+                            
+                            <!-- Movie Details -->
+                            <div class="lg:col-span-2 space-y-4 text-left">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <p class="text-gray-400 text-sm mb-1">Genre</p>
+                                        <p class="text-white font-semibold">{{ ctrl.selectedMovie.Genre }}</p>
+                                    </div>
+                                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <p class="text-gray-400 text-sm mb-1">Released</p>
+                                        <p class="text-white font-semibold">{{ ctrl.selectedMovie.Released }}</p>
+                                    </div>
+                                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <p class="text-gray-400 text-sm mb-1">Director</p>
+                                        <button ng-click="ctrl.getDirectorDetails(ctrl.selectedMovie.Director)" 
+                                                class="text-blue-400 hover:text-blue-300 font-semibold transition-colors duration-300">
+                                            {{ ctrl.selectedMovie.Director }}
+                                        </button>
+                                    </div>
+                                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <p class="text-gray-400 text-sm mb-1">IMDb Rating</p>
+                                        <div class="flex items-center">
+                                            <span ng-repeat="star in ctrl.getRatingStars(ctrl.selectedMovie.imdbRating)" class="text-yellow-400 mr-1">
+                                                <i class="fas fa-star"></i>
+                                            </span>
+                                            <span class="text-white font-semibold ml-2">{{ ctrl.selectedMovie.imdbRating }}/10</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Actors -->
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                    <p class="text-gray-400 text-sm mb-2">Cast</p>
+                                    <button ng-click="ctrl.getActorDetails(ctrl.selectedMovie.Actors)" 
+                                            class="text-blue-400 hover:text-blue-300 font-semibold transition-colors duration-300">
+                                        {{ ctrl.selectedMovie.Actors }}
+                                    </button>
+                                </div>
+                                
+                                <!-- Plot -->
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                    <p class="text-gray-400 text-sm mb-2">Plot</p>
+                                    <p class="text-gray-200 leading-relaxed">{{ ctrl.selectedMovie.Plot }}</p>
+                                </div>
+                                
+                                <!-- Trailer Link -->
+                                <div ng-if="ctrl.selectedMovie.Trailer" class="bg-white/5 p-4 rounded-xl border border-white/10">
+                                    <a ng-href="{{ ctrl.selectedMovie.Trailer }}" target="_blank" 
+                                       class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                        <i class="fas fa-play mr-2"></i>Watch Trailer
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Reviews Section -->
+                        <div class="mt-8 bg-white/5 p-6 rounded-xl border border-white/10">
+                            <h3 class="text-xl font-bold text-white mb-4">
+                                <i class="fas fa-comments text-blue-400 mr-2"></i>Reviews
+                            </h3>
+                            
+                            <!-- Existing Reviews -->
+                            <div ng-if="ctrl.selectedMovie.reviews && ctrl.selectedMovie.reviews.length > 0" class="space-y-3 mb-6">
+                                <div ng-repeat="review in ctrl.selectedMovie.reviews" 
+                                    class="bg-white/5 p-4 rounded-lg border border-white/10 animate-fade-in">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-user-circle text-2xl text-gray-400 mr-3 mt-1"></i>
+                                        <div>
+                                            <p class="text-gray-200">{{ review.text }}</p>
+                                            <p class="text-gray-400 text-sm mt-1">By {{ review.user }} on {{ review.date }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Add Review Form -->
+                            <div ng-if="ctrl.showReviewForm" class="mt-6">
+                                <h4 class="text-lg font-semibold text-white mb-3">Add Your Review</h4>
+                                <div class="space-y-4">
+                                    <textarea ng-model="ctrl.newReview" placeholder="Write your review..." 
+                                            class="w-full p-4 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"></textarea>
+                                    <div class="flex space-x-3">
+                                        <button ng-click="ctrl.submitReview()" 
+                                                class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                                            <i class="fas fa-paper-plane mr-2"></i>Submit Review
+                                        </button>
+                                        <button ng-click="ctrl.cancelReview()" 
+                                                class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-800 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                                            <i class="fas fa-times mr-2"></i>Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AngularJS Controller -->
+    <script src="app.js"></script>
+</body>
+</html>
